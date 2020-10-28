@@ -11,19 +11,38 @@
         <p>Message is: {{ apiUrl }}</p>
       </form>
     </div>
-    <router-view :api-url="apiUrl"/>
+    <router-view :api-url="apiUrl" :position-to-id="positionToId" :slots="slots"/>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import { DEFAULT_API_URL } from '@/constants'
+import { getWheelConfig } from '@/services'
 
 @Component({
 
 })
 export default class App extends Vue {
   public apiUrl = DEFAULT_API_URL;
+  public colors = [];
+  public positionToId = [];
+  public slots = 0;
+
+  mounted () {
+    getWheelConfig(this.apiUrl).then(response => {
+      const data = response.data
+      this.slots = data.slots
+      this.positionToId = data.positionToId
+
+      // this.getNextGame()
+      //   .then((response) => this.handleNextGameFetchResult(response.data))
+      // public colors = [];
+      // public name = '';
+      // public positionToId = '';
+      // public results = [];
+    })
+  }
 }
 </script>
 

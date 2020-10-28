@@ -1,6 +1,6 @@
 <template>
   <div>
-    {{selectedPositionIdIndex}}
+    <h2>Game Board</h2>
     <ul
       class="wheel"
       :style="{transform: `rotateZ(${wheelRotationAngle}deg)`}"
@@ -9,8 +9,8 @@
         v-for="(position, index) in positionToId"
         :key="index"
         class="wheel-item"
-        v-bind:class="{'is-selected': selectedPositionIdIndex > -1 && index === selectedPositionIdIndex, 'haha': true}"
-        :style="{transform: `rotateZ(${slots === 0 ? 0: 360 / slots * index}deg)`}"
+        v-bind:class="{'is-selected': selectedPositionIdIndex > -1 && index === selectedPositionIdIndex}"
+        :style="{transform: `rotateZ(${!slots ? 0 : 360 / slots * index}deg)`}"
       >
         <span class='wheel-number'>{{position}}</span>
       </li>
@@ -24,19 +24,18 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator'
-import axios from 'axios'
-import { NEXT_GAME_PATH, SPIN_BY_UUID_PATH, WHEEL_CONFIG_PATH } from '@/constants'
+import { getNextGame, getSpin } from '@/services'
 
 @Component({
 
 })
-export default class Home extends Vue {
+export default class GameBoardAndEvents extends Vue {
   @Prop() apiUrl!: string
-  public colors = [];
+  @Prop() colors: [];
+  @Prop() positionToId: [];
+  @Prop() slots: number;
   public name = '';
-  public positionToId = [];
   public results = [];
-  public slots = 0;
   public nextGameData = {};
 
   public countDownIntervalId;
@@ -47,38 +46,22 @@ export default class Home extends Vue {
 
   public spinResultAvailableIntervalId;
   public selectedPositionIdIndex = -1;
+  public initialNextGameFetchDone = false;
 
-  mounted () {
-    this.getWheelConfig().then(response => {
-      const data = response.data
-      this.slots = data.slots
-      this.positionToId = data.positionToId
+  updated () {
+    if (this.positionToId.length) {
+      if (!this.initialNextGameFetchDone) {
+        getNextGame(this.apiUrl)
+          .then((response) => this.handleNextGameFetchResult(response.data))
 
-      this.getNextGame()
-        .then((response) => this.handleNextGameFetchResult(response.data))
-    // public colors = [];
-    // public name = '';
-    // public positionToId = '';
-    // public results = [];
-    })
-  // SPIN_BY_UUID_PATH
-  }
-
-  getWheelConfig () {
-    return axios.get(`${this.apiUrl}${WHEEL_CONFIG_PATH}`)
-  }
-
-  getNextGame () {
-    return axios.get(`${this.apiUrl}${NEXT_GAME_PATH}`)
-  }
-
-  getSpin (uuid) {
-    return axios.get(`${this.apiUrl}${SPIN_BY_UUID_PATH}/${uuid}`)
+        this.initialNextGameFetchDone = true
+      }
+    }
   }
 
   getSpinUntilAvailable (seconds) {
     setTimeout(() => {
-      this.getSpin(this.nextGameData.uuid)
+      getSpin(this.apiUrl, this.nextGameData.uuid)
         .then((response) => {
           const data = response.data
           if (data.result || data.result === 0) {
@@ -145,7 +128,7 @@ export default class Home extends Vue {
       this.selectedPositionIdIndex = -1
     }, 2000)
     this.endSpinWheel()
-    this.getNextGame()
+    getNextGame(this.apiUrl)
       .then((response) => this.handleNextGameFetchResult(response.data))
   }
 }
