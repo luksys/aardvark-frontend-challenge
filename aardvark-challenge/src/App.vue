@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link :to="{path: '/', query: {test: 'test'}}">Game Board and Events</router-link> |
+      <router-link to="/">Game Board and Events</router-link> |
       <router-link to="/statistics-and-action-logs">Statistics and Actions Log</router-link>
     </div>
     <div>
@@ -11,29 +11,42 @@
         <p>Message is: {{ apiUrl }}</p>
       </form>
     </div>
-    <router-view :api-url="apiUrl" :position-to-id="positionToId" :slots="slots"/>
+    <router-view
+      :api-url="apiUrl"
+      :position-to-id="positionToId"
+      :slots="slots"
+      :colors="colors"
+      :results="results"
+      :stats="spinStats"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import { DEFAULT_API_URL } from '@/constants'
-import { getWheelConfig } from '@/services'
+import { getSpinStats, getWheelConfig } from '@/services'
 
 @Component({
 
 })
 export default class App extends Vue {
   public apiUrl = DEFAULT_API_URL;
+
   public colors = [];
   public positionToId = [];
+  public results = [];
   public slots = 0;
+
+  public spinStats = [];
 
   mounted () {
     getWheelConfig(this.apiUrl).then(response => {
       const data = response.data
       this.slots = data.slots
       this.positionToId = data.positionToId
+      this.colors = data.colors
+      this.results = data.results
 
       // this.getNextGame()
       //   .then((response) => this.handleNextGameFetchResult(response.data))
@@ -42,6 +55,16 @@ export default class App extends Vue {
       // public positionToId = '';
       // public results = [];
     })
+    this.updateSpinStats()
+  }
+
+  updateSpinStats () {
+    getSpinStats(this.apiUrl, 1)
+      .then((response) => {
+        this.spinStats = response.data
+        console.log({ response })
+      })
+      .catch((error) => { console.log(error) })
   }
 }
 </script>
@@ -57,6 +80,7 @@ export default class App extends Vue {
 
 #nav {
   padding: 30px;
+  
 
   a {
     font-weight: bold;
@@ -66,5 +90,11 @@ export default class App extends Vue {
       color: #42b983;
     }
   }
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
 }
 </style>

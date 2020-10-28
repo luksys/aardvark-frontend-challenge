@@ -34,9 +34,8 @@ export default class GameBoardAndEvents extends Vue {
   @Prop() colors: [];
   @Prop() positionToId: [];
   @Prop() slots: number;
-  public name = '';
-  public results = [];
-  public nextGameData = {};
+  @Prop() results: number;
+  public gameData = {};
 
   public countDownIntervalId;
   public countDownValue = 0;
@@ -61,11 +60,11 @@ export default class GameBoardAndEvents extends Vue {
 
   getSpinUntilAvailable (seconds) {
     setTimeout(() => {
-      getSpin(this.apiUrl, this.nextGameData.uuid)
+      getSpin(this.apiUrl, this.gameData.uuid)
         .then((response) => {
           const data = response.data
           if (data.result || data.result === 0) {
-            this.selectedPositionIdIndex = data.result
+            this.selectedPositionIdIndex = this.results.findIndex((result) => result === data.result)
             this.handleInitNewGame()
           } else {
             this.getSpinUntilAvailable(seconds)
@@ -103,13 +102,13 @@ export default class GameBoardAndEvents extends Vue {
   }
 
   handleNextGameFetchResult (data) {
-    this.nextGameData = data
-    this.initCountdown(this.nextGameData)
+    this.gameData = data
+    this.initCountdown(this.gameData)
   }
 
   handleCountdownFinish () {
     this.startSpinWheel()
-    let waitSeconds = this.nextGameData.startDelta - this.nextGameData.fakeStartDelta
+    let waitSeconds = this.gameData.startDelta - this.gameData.fakeStartDelta
 
     if (waitSeconds > 0) {
       this.spinResultAvailableIntervalId = setInterval(() => {
