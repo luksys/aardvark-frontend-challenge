@@ -1,6 +1,9 @@
 <template>
   <div>
-    <ul class="wheel">
+    <ul
+      class="wheel"
+      :style="{transform: `rotateZ(${wheelRotationAngle}deg)`}"
+    >
       <li
         v-for="(position, index) in positionToId"
         :key="index" class="wheel-item"
@@ -11,7 +14,7 @@
     </ul>
     <div class="timer">
       <h2>Countdown until the next game</h2>
-      {{countDownValue ? countDownValue : 'not counting' }}
+      {{ countDownValue ? countDownValue : '' }}
     </div>
   </div>
 </template>
@@ -19,7 +22,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator'
 import axios from 'axios'
-import { NEXT_GAME_PATH, WHEEL_CONFIG_PATH } from '@/constants'
+import { NEXT_GAME_PATH, SPIN_BY_UUID_PATH, WHEEL_CONFIG_PATH } from '@/constants'
 
 @Component({
 
@@ -31,38 +34,49 @@ export default class Home extends Vue {
   public positionToId = [];
   public results = [];
   public slots = 0;
+  public nextGameData = {};
 
   public countDownIntervalId;
   public countDownValue = 0;
 
-  mounted () {
-    axios
-      .get(`${this.apiUrl}${WHEEL_CONFIG_PATH}`)
-      .then(response => {
-        const data = response.data
-        this.slots = data.slots
-        this.positionToId = data.positionToId
+  public wheelSpinIntervalId;
+  public wheelRotationAngle = 0;
 
-        this.getNextGame(this.initCountdown)
-      // public colors = [];
-      // public name = '';
-      // public positionToId = '';
-      // public results = [];
-      })
-    // SPIN_BY_UUID_PATH
+  public spinResultAvailableIntervalId;
+
+  mounted () {
+    this.getWheelConfig().then(response => {
+      const data = response.data
+      this.slots = data.slots
+      this.positionToId = data.positionToId
+
+      this.getNextGame()
+        .then((response) => this.handleNextGameFetchResult(response.data))
+    // public colors = [];
+    // public name = '';
+    // public positionToId = '';
+    // public results = [];
+    })
+  // SPIN_BY_UUID_PATH
   }
 
-  getNextGame (callback) {
-    axios
-      .get(`${this.apiUrl}${NEXT_GAME_PATH}`)
-      .then(response => callback(response.data))
+  getWheelConfig () {
+    return axios.get(`${this.apiUrl}${WHEEL_CONFIG_PATH}`)
+  }
+
+  getNextGame () {
+    return axios.get(`${this.apiUrl}${NEXT_GAME_PATH}`)
+  }
+
+  getSpin (uuid) {
+    return axios.get(`${this.apiUrl}${SPIN_BY_UUID_PATH}/${uuid}`)
   }
 
   initCountdown (data) {
-    this.countDown(data.fakeStartDelta)
+    this.countDown(data.fakeStartDelta, this.handleCountdownFinish)
   }
 
-  countDown (seconds) {
+  countDown (seconds, endCallback) {
     this.countDownValue = seconds
 
     this.countDownIntervalId = setInterval(() => {
@@ -70,8 +84,49 @@ export default class Home extends Vue {
 
       if (this.countDownValue === 0) {
         clearInterval(this.countDownIntervalId)
+        if (endCallback) endCallback()
       }
     }, 1000)
+  }
+
+  handleNextGameFetchResult (data) {
+    this.nextGameData = data
+    this.initCountdown(this.nextGameData)
+  }
+
+  handleCountdownFinish () {
+    this.startSpinWheel()
+    let waitSeconds = this.nextGameData.startDelta - this.nextGameData.fakeStartDelta
+
+    if (waitSeconds > 0) {
+      this.spinResultAvailableIntervalId = setInterval(() => {
+        waitSeconds--
+
+        if (waitSeconds === 0) {
+          clearInterval(this.spinResultAvailableIntervalId)
+          // this.getSpin(this.nextGameData.uuid).then((response) => {
+          //   console.log({ response })
+          // })
+          console.log('finished interval..')
+          setInterval(() => {
+            console.log('running inner interval..')
+            this.getSpin(this.nextGameData.uuid).then((response) => {
+              console.log({ response })
+            })
+          }, 5000)
+        }
+      }, 1000)
+    }
+  }
+
+  startSpinWheel () {
+    this.wheelSpinIntervalId = setInterval(() => {
+      this.wheelRotationAngle++
+    }, 50)
+  }
+
+  endSpinWheel () {
+    clearInterval(this.wheelSpinIntervalId)
   }
 
   updated () {
