@@ -26,19 +26,20 @@
 import { Component, Vue } from 'vue-property-decorator'
 import { DEFAULT_API_URL } from '@/constants'
 import { getSpinStats, getWheelConfig } from '@/services'
+import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 
 @Component({
 
 })
 export default class App extends Vue {
-  public apiUrl = DEFAULT_API_URL;
+  private apiUrl = DEFAULT_API_URL;
 
-  public colors = [];
-  public positionToId = [];
-  public results = [];
-  public slots = 0;
+  private colors = [];
+  private positionToId = [];
+  private results = [];
+  private slots = 0;
 
-  public spinStats = [];
+  private spinStats = [];
 
   mounted () {
     getWheelConfig(this.apiUrl).then(response => {
@@ -80,7 +81,6 @@ export default class App extends Vue {
 
 #nav {
   padding: 30px;
-  
 
   a {
     font-weight: bold;

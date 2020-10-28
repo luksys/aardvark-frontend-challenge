@@ -30,6 +30,6 @@ import { Component, Prop, Vue } from 'vue-property-decorator'
 
 })
 export default class StatisticsAndActionsLog extends Vue {
-  @Prop() stats = [];
+  @Prop() stats: [];
 }
 </script>

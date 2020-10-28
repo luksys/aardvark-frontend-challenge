@@ -12,12 +12,35 @@
         v-bind:class="{'is-selected': selectedPositionIdIndex > -1 && index === selectedPositionIdIndex}"
         :style="{transform: `rotateZ(${!slots ? 0 : 360 / slots * index}deg)`}"
       >
-        <span class='wheel-number'>{{position}}</span>
+        <span class='wheel-number'>{{ position }}</span>
       </li>
     </ul>
     <div class="timer">
       <h2>Countdown until the next game</h2>
       {{ countDownValue ? countDownValue : 'Awaiting for result...' }}
+    </div>
+    <div>
+      <h2>Recorded Spins</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>id</th>
+            <th>uuid</th>
+            <th>result</th>
+            <th>startTime</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(spin, index) in RecordedSpins"
+            :key="index">
+            <td>{{ spin.id }}</td>
+            <td>{{ spin.uuid }}</td>
+            <td>{{ spin.result }}</td>
+            <td>{{ spin.startTime }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -25,6 +48,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator'
 import { getNextGame, getSpin } from '@/services'
+import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 
 @Component({
 
@@ -35,17 +59,22 @@ export default class GameBoardAndEvents extends Vue {
   @Prop() positionToId: [];
   @Prop() slots: number;
   @Prop() results: number;
-  public gameData = {};
+  private gameData = {};
 
-  public countDownIntervalId;
-  public countDownValue = 0;
+  private countDownIntervalId;
+  private countDownValue = 0;
 
-  public wheelSpinIntervalId;
-  public wheelRotationAngle = 0;
+  private wheelSpinIntervalId;
+  private wheelRotationAngle = 0;
 
-  public spinResultAvailableIntervalId;
-  public selectedPositionIdIndex = -1;
-  public initialNextGameFetchDone = false;
+  private spinResultAvailableIntervalId;
+  private selectedPositionIdIndex = -1;
+  private initialNextGameFetchDone = false;
+  private recordedSpins = [];
+
+  get RecordedSpins (): RecordedSpinsModel[] {
+    return this.$store.state.recordedSpins
+  }
 
   updated () {
     if (this.positionToId.length) {
@@ -65,6 +94,7 @@ export default class GameBoardAndEvents extends Vue {
           const data = response.data
           if (data.result || data.result === 0) {
             this.selectedPositionIdIndex = this.results.findIndex((result) => result === data.result)
+            this.$store.dispatch('addRecordedSpin', data)
             this.handleInitNewGame()
           } else {
             this.getSpinUntilAvailable(seconds)
