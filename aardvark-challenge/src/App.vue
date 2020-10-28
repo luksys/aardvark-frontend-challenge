@@ -26,7 +26,7 @@
 import { Component, Vue } from 'vue-property-decorator'
 import { DEFAULT_API_URL } from '@/constants'
 import { getSpinStats, getWheelConfig } from '@/services'
-import RecordedSpinsModel from '@/models/RecordedSpinsModel'
+import { createActionLogEntry } from '@/utilities'
 
 @Component({
 
@@ -42,6 +42,7 @@ export default class App extends Vue {
   private spinStats = [];
 
   mounted () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('App component mounted'))
     getWheelConfig(this.apiUrl).then(response => {
       const data = response.data
       this.slots = data.slots

@@ -70,7 +70,6 @@ export default class GameBoardAndEvents extends Vue {
   private spinResultAvailableIntervalId;
   private selectedPositionIdIndex = -1;
   private initialNextGameFetchDone = false;
-  private recordedSpins = [];
 
   get RecordedSpins (): RecordedSpinsModel[] {
     return this.$store.state.recordedSpins
