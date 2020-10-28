@@ -1,20 +1,23 @@
 <template>
   <div>
+    {{selectedPositionIdIndex}}
     <ul
       class="wheel"
       :style="{transform: `rotateZ(${wheelRotationAngle}deg)`}"
     >
       <li
         v-for="(position, index) in positionToId"
-        :key="index" class="wheel-item"
+        :key="index"
+        class="wheel-item"
+        v-bind:class="{'is-selected': selectedPositionIdIndex > -1 && index === selectedPositionIdIndex, 'haha': true}"
         :style="{transform: `rotateZ(${slots === 0 ? 0: 360 / slots * index}deg)`}"
       >
-        <span class="wheel-number">{{position}}</span>
+        <span class='wheel-number'>{{position}}</span>
       </li>
     </ul>
     <div class="timer">
       <h2>Countdown until the next game</h2>
-      {{ countDownValue ? countDownValue : '' }}
+      {{ countDownValue ? countDownValue : 'Awaiting for result...' }}
     </div>
   </div>
 </template>
@@ -43,6 +46,7 @@ export default class Home extends Vue {
   public wheelRotationAngle = 0;
 
   public spinResultAvailableIntervalId;
+  public selectedPositionIdIndex = -1;
 
   mounted () {
     this.getWheelConfig().then(response => {
@@ -72,6 +76,22 @@ export default class Home extends Vue {
     return axios.get(`${this.apiUrl}${SPIN_BY_UUID_PATH}/${uuid}`)
   }
 
+  getSpinUntilAvailable (seconds) {
+    setTimeout(() => {
+      this.getSpin(this.nextGameData.uuid)
+        .then((response) => {
+          const data = response.data
+          if (data.result || data.result === 0) {
+            this.selectedPositionIdIndex = data.result
+            this.handleInitNewGame()
+          } else {
+            this.getSpinUntilAvailable(seconds)
+          }
+        })
+        .catch((error) => console.log(error))
+    }, seconds)
+  }
+
   initCountdown (data) {
     this.countDown(data.fakeStartDelta, this.handleCountdownFinish)
   }
@@ -89,6 +109,16 @@ export default class Home extends Vue {
     }, 1000)
   }
 
+  startSpinWheel () {
+    this.wheelSpinIntervalId = setInterval(() => {
+      this.wheelRotationAngle++
+    }, 50)
+  }
+
+  endSpinWheel () {
+    clearInterval(this.wheelSpinIntervalId)
+  }
+
   handleNextGameFetchResult (data) {
     this.nextGameData = data
     this.initCountdown(this.nextGameData)
@@ -104,33 +134,19 @@ export default class Home extends Vue {
 
         if (waitSeconds === 0) {
           clearInterval(this.spinResultAvailableIntervalId)
-          // this.getSpin(this.nextGameData.uuid).then((response) => {
-          //   console.log({ response })
-          // })
-          console.log('finished interval..')
-          setInterval(() => {
-            console.log('running inner interval..')
-            this.getSpin(this.nextGameData.uuid).then((response) => {
-              console.log({ response })
-            })
-          }, 5000)
+          this.getSpinUntilAvailable(5000)
         }
       }, 1000)
     }
   }
 
-  startSpinWheel () {
-    this.wheelSpinIntervalId = setInterval(() => {
-      this.wheelRotationAngle++
-    }, 50)
-  }
-
-  endSpinWheel () {
-    clearInterval(this.wheelSpinIntervalId)
-  }
-
-  updated () {
-    console.log(this.apiUrl)
+  handleInitNewGame () {
+    setTimeout(() => {
+      this.selectedPositionIdIndex = -1
+    }, 2000)
+    this.endSpinWheel()
+    this.getNextGame()
+      .then((response) => this.handleNextGameFetchResult(response.data))
   }
 }
 </script>
@@ -163,6 +179,10 @@ export default class Home extends Vue {
     border-right: 16px solid transparent;
     border-top: 175px solid black;
     box-sizing: border-box;
+  }
+  .wheel-item.is-selected .wheel-number {
+    color: red;
+    font-weight: bold;
   }
   .wheel-number {
     color: #fff;
