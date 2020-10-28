@@ -1,12 +1,31 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Game Board and Events</router-link> |
+      <router-link :to="{path: '/', query: {test: 'test'}}">Game Board and Events</router-link> |
       <router-link to="/statistics-and-action-logs">Statistics and Actions Log</router-link>
     </div>
-    <router-view/>
+    <div>
+      <form>
+        <label for="api-url"></label>
+        <input v-model="apiUrl" id="api-url" placeholder="Add API url">
+        <p>Message is: {{ apiUrl }}</p>
+      </form>
+    </div>
+    <router-view :api-url="apiUrl"/>
   </div>
 </template>
+
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator'
+import { DEFAULT_API_URL } from '@/constants'
+
+@Component({
+
+})
+export default class App extends Vue {
+  public apiUrl = DEFAULT_API_URL;
+}
+</script>
 
 <style lang="scss">
 #app {

@@ -8,7 +8,8 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     name: 'Game Board and Events',
-    component: GameBoardAndEvents
+    component: GameBoardAndEvents,
+    props: true
   },
   {
     path: '/statistics-and-action-logs',
