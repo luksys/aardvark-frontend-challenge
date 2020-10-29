@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div>
+    <section class="col mb-9">
       <h2>Statistics</h2>
       <ul class="d-flex mb-2">
         <li class="mr-2"><span class="pill background-color-blue">Cold!</span> - Least Occurrences</li>
@@ -37,10 +37,13 @@
               </span>
             </td>
           </tr>
+          <tr v-if="!stats.length">
+            <td colspan="3" class="text-center">No Records Found</td>
+          </tr>
         </tbody>
       </table>
-    </div>
-    <div>
+    </section>
+    <section class="col">
       <h2>Actions Log</h2>
       <table>
         <thead>
@@ -57,9 +60,12 @@
             <td>{{ actionLogEntry.timestamp }}</td>
             <td>{{ actionLogEntry.action }}</td>
           </tr>
+          <tr v-if="!ActionsLog.length">
+            <td colspan="2" class="text-center">No Records Found</td>
+          </tr>
         </tbody>
       </table>
-    </div>
+    </section>
 
   </div>
 </template>

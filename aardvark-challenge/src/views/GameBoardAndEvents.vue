@@ -25,9 +25,8 @@
 
     <section class="col-6">
       <h2>Countdown until the next game</h2>
-      <h3 class="timer">
-        {{ countDownValue ? countDownValue : 'Awaiting for result...' }}
-      </h3>
+      <h3 v-if="!countDownValue">Awaiting for result...</h3>
+      <div v-else class="timer">{{ countDownValue }}</div>
     </section>
 
     <section class="col">
@@ -43,14 +42,17 @@
           </tr>
           </thead>
           <tbody>
-          <tr
-            v-for="(spin, index) in RecordedSpins"
-            :key="index">
-            <td>{{ spin.id }}</td>
-            <td>{{ spin.uuid }}</td>
-            <td>{{ spin.result }}</td>
-            <td>{{ spin.startTime }}</td>
-          </tr>
+            <tr
+              v-for="(spin, index) in RecordedSpins"
+              :key="index">
+              <td>{{ spin.id }}</td>
+              <td>{{ spin.uuid }}</td>
+              <td>{{ spin.result }}</td>
+              <td>{{ spin.startTime }}</td>
+            </tr>
+            <tr v-if="!RecordedSpins.length">
+              <td colspan="4" class="text-center">No Records Found</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -81,6 +83,7 @@ export default class GameBoardAndEvents extends Vue {
 
   private spinResultAvailableIntervalId;
   private selectedPositionIdIndex = -1;
+  private initializedTheGameBoard = false;
 
   get RecordedSpins (): RecordedSpinsModel[] {
     return this.$store.state.recordedSpins
@@ -104,15 +107,22 @@ export default class GameBoardAndEvents extends Vue {
 
   mounted () {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('GameBoardAndEvents mounted')).then()
-    if (this.PositionToId) {
+    if (this.PositionToId && this.PositionToId.length) {
+      this.initializedTheGameBoard = true
       getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
-    } else {
-      this.$store.watch(
-        state => state.config.PositionToId,
-        () => {
-          getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
-        }
-      )
+    }
+  }
+
+  beforeDestroy () {
+    clearInterval(this.countDownIntervalId)
+    clearInterval(this.wheelSpinIntervalId)
+    clearInterval(this.spinResultAvailableIntervalId)
+  }
+
+  updated () {
+    if (this.PositionToId.length && !this.initializedTheGameBoard) {
+      this.initializedTheGameBoard = true
+      getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
     }
   }
 
@@ -241,5 +251,8 @@ export default class GameBoardAndEvents extends Vue {
     position: absolute;
     top: -175px;
     left: -16px;
+  }
+  .timer {
+    font-size: 48px;
   }
 </style>

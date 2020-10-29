@@ -20,7 +20,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import { DEFAULT_API_URL } from '@/constants'
-import { getSpinStats, getWheelConfig } from '@/services'
+import { getWheelConfig } from '@/services'
 import { createActionLogEntry } from '@/utilities'
 
 @Component({
@@ -28,7 +28,6 @@ import { createActionLogEntry } from '@/utilities'
 })
 export default class App extends Vue {
   private apiUrl = DEFAULT_API_URL;
-  private spinStats = [];
 
   mounted () {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('App mounted')).then()
@@ -36,16 +35,6 @@ export default class App extends Vue {
       const data = response.data
       this.$store.dispatch('addConfig', data)
     })
-    this.updateSpinStats()
-  }
-
-  updateSpinStats () {
-    getSpinStats(this.apiUrl, 1)
-      .then((response) => {
-        this.spinStats = response.data
-        console.log({ response })
-      })
-      .catch((error) => { console.log(error) })
   }
 }
 </script>
@@ -526,6 +515,13 @@ table {
 
 .mb-1 {margin-bottom: 4px !important;}
 .mb-2 {margin-bottom: 8px !important;}
+.mb-3 {margin-bottom: 8px !important;}
+.mb-4 {margin-bottom: 12px !important;}
+.mb-5 {margin-bottom: 16px !important;}
+.mb-6 {margin-bottom: 20px !important;}
+.mb-7 {margin-bottom: 24px !important;}
+.mb-8 {margin-bottom: 28px !important;}
+.mb-9 {margin-bottom: 32px !important;}
 
 .position-relative {position: relative !important;}
 
