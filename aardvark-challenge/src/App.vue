@@ -518,6 +518,12 @@ table {
 .d-flex {display: flex !important;}
 .flex-wrap {flex-wrap: wrap !important;}
 
+.mr-1 {margin-right: 4px !important;}
+.mr-2 {margin-right: 8px !important;}
+
+.mb-1 {margin-bottom: 4px !important;}
+.mb-2 {margin-bottom: 8px !important;}
+
 .position-relative {position: relative !important;}
 
 .text-center {text-align: center !important;}
@@ -534,6 +540,8 @@ table {
 .background-color-green {background-color: green !important;}
 .background-color-black {background-color: black !important;}
 .background-color-red {background-color: red !important;}
+.background-color-blue {background-color: #2aabdc !important;}
+.background-color-yellow {background-color: yellow !important;}
 
 .pill {
   text-transform: uppercase;
@@ -544,6 +552,10 @@ table {
   background: red;
   border-radius: 4px;
   padding: 2px;
+
+  &.background-color-yellow {
+    color: #000;
+  }
 }
 
 /* Animations */

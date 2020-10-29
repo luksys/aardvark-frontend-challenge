@@ -2,6 +2,11 @@
   <div>
     <div>
       <h2>Statistics</h2>
+      <ul class="d-flex mb-2">
+        <li class="mr-2"><span class="pill background-color-blue">Cold!</span> - Least Occurrences</li>
+        <li class="mr-2"><span class="pill">Hot!</span> - Most Occurrences</li>
+        <li><span class="pill background-color-yellow">Neutral</span> - Occurrences</li>
+      </ul>
       <table class="table-stats">
         <thead>
         <tr>
@@ -25,7 +30,10 @@
             <td>
               {{ itemStats.count }}
               <span class="position-relative">
-                <span class="pill">{{ getOccurrenceIndicator(index, stats) }}</span>
+                <span
+                  class="pill"
+                  :class="[getOccurrenceIndicatorColorClass(index, stats)]"
+                >{{ getOccurrenceIndicator(index, stats) }}</span>
               </span>
             </td>
           </tr>
@@ -91,9 +99,19 @@ export default class StatisticsAndActionsLog extends Vue {
   }
 
   getOccurrenceIndicator (index, stats): string {
+    if (!stats) return
+
     if (index < 5) { return 'Cold!' }
     if ((stats.length - 1) - index <= 4) { return 'Hot!' }
     return 'Neutral'
+  }
+
+  getOccurrenceIndicatorColorClass (index, stats): string {
+    if (!stats) return
+
+    if (index < 5) { return 'background-color-blue' }
+    if ((stats.length - 1) - index <= 4) return
+    return 'background-color-yellow'
   }
 }
 </script>
