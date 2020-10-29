@@ -435,6 +435,7 @@ ul {
   display: flex;
   align-items: center;
   height: 56px;
+  z-index: 1000;
 
   form {
     width: 100%;
@@ -516,7 +517,12 @@ table {
 /* Utilities */
 .d-flex {display: flex !important;}
 .flex-wrap {flex-wrap: wrap !important;}
+
+.position-relative {position: relative !important;}
+
 .text-center {text-align: center !important;}
+.text-uppercase {text-transform: uppercase !important;}
+
 .border-top-color-green {border-top-color: green !important;}
 .border-top-color-black {border-top-color: black !important;}
 .border-top-color-red {border-top-color: red !important;}
@@ -528,6 +534,17 @@ table {
 .background-color-green {background-color: green !important;}
 .background-color-black {background-color: black !important;}
 .background-color-red {background-color: red !important;}
+
+.pill {
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  background: red;
+  border-radius: 4px;
+  padding: 2px;
+}
 
 /* Animations */
 @keyframes pulse {

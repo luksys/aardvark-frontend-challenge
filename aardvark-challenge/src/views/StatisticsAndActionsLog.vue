@@ -8,7 +8,6 @@
           <th>Color</th>
           <th>Result</th>
           <th>Number of Occurrence(s)</th>
-          <th>Hot / Cold / Neutral</th>
         </tr>
         </thead>
         <tbody>
@@ -23,8 +22,12 @@
               ></div>
             </td>
             <td>{{ itemStats.result }}</td>
-            <td>{{ itemStats.count }}</td>
-            <td>{{ test(index, stats) }}</td>
+            <td>
+              {{ itemStats.count }}
+              <span class="position-relative">
+                <span class="pill">{{ getOccurrenceIndicator(index, stats) }}</span>
+              </span>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -87,19 +90,19 @@ export default class StatisticsAndActionsLog extends Vue {
     })
   }
 
-  test (index, stats) {
-    // if (index < 5) {return 'Cold!'}
-    // if (index)
-    // console.log({ index, stats })
-    return 'TESTSDAASD'
+  getOccurrenceIndicator (index, stats): string {
+    if (index < 5) { return 'Cold!' }
+    if ((stats.length - 1) - index <= 4) { return 'Hot!' }
+    return 'Neutral'
   }
 }
 </script>
 <style lang="scss">
-  //.table-stats {
-  //  tbody tr {
-  //    border-bottom-style: solid;;
-  //    border-bottom-width: 4px;
-  //  }
-  //}
+  .table-stats {
+    .pill {
+      position: absolute;
+      left: 4px;
+      top: -7px;
+    }
+  }
 </style>
