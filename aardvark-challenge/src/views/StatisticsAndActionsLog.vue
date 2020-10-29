@@ -2,12 +2,13 @@
   <div>
     <div>
       <h2>Statistics</h2>
-      <table>
+      <table class="table-stats">
         <thead>
         <tr>
-          <th>Spin</th>
+          <th>Color</th>
           <th>Result</th>
-          <th>Count</th>
+          <th>Number of Occurrence(s)</th>
+          <th>Hot / Cold / Neutral</th>
         </tr>
         </thead>
         <tbody>
@@ -15,9 +16,15 @@
             v-for="(itemStats, index) in stats"
             :key="index"
           >
-            <td>{{ index }}</td>
+            <td>
+              <div
+                :class="['background-color-' + Colors[Results.findIndex((result) => +result === itemStats.result)]]"
+                style="height: 40px; width: 80px;"
+              ></div>
+            </td>
             <td>{{ itemStats.result }}</td>
             <td>{{ itemStats.count }}</td>
+            <td>{{ test(index, stats) }}</td>
           </tr>
         </tbody>
       </table>
@@ -49,15 +56,50 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator'
 import ActionsLogModel from '@/models/ActionsLogModel'
+import { getSpinStats } from '@/services'
 
 @Component({
 
 })
 export default class StatisticsAndActionsLog extends Vue {
-  @Prop() stats: [];
+  @Prop() apiUrl!: string;
+  private stats = [];
+
+  get Colors () {
+    return this.$store.state.config.colors
+  }
+
+  get Results () {
+    return this.$store.state.config.results
+  }
 
   get ActionsLog (): ActionsLogModel[] {
     return this.$store.state.actionsLog
   }
+
+  mounted () {
+    this.setSpinStats()
+  }
+
+  setSpinStats () {
+    getSpinStats(this.apiUrl, 200).then(response => {
+      this.stats = [...response.data]
+    })
+  }
+
+  test (index, stats) {
+    // if (index < 5) {return 'Cold!'}
+    // if (index)
+    // console.log({ index, stats })
+    return 'TESTSDAASD'
+  }
 }
 </script>
+<style lang="scss">
+  //.table-stats {
+  //  tbody tr {
+  //    border-bottom-style: solid;;
+  //    border-bottom-width: 4px;
+  //  }
+  //}
+</style>

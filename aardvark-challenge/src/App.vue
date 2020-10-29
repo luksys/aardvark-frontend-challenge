@@ -485,17 +485,25 @@ h2 {
 
 /* Tables */
 table {
+  width: 100%;
+  border-collapse: collapse;
+  thead {
+    background: #000;
+    color: white;
+  }
   th {
     text-transform: uppercase;
   }
   th, td {
     padding: 16px;
+    text-align: left;
   }
 }
 
 /* Mini grid */
 [class^='col'] {
   padding: 16px;
+  width: 100%;
 }
 
 .col-6 {
@@ -512,6 +520,14 @@ table {
 .border-top-color-green {border-top-color: green !important;}
 .border-top-color-black {border-top-color: black !important;}
 .border-top-color-red {border-top-color: red !important;}
+
+.border-bottom-color-green {border-bottom-color: green !important;}
+.border-bottom-color-black {border-bottom-color: black !important;}
+.border-bottom-color-red {border-bottom-color: red !important;}
+
+.background-color-green {background-color: green !important;}
+.background-color-black {background-color: black !important;}
+.background-color-red {background-color: red !important;}
 
 /* Animations */
 @keyframes pulse {

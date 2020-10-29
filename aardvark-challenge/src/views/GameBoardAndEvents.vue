@@ -1,6 +1,7 @@
 <template>
   <div class="d-flex flex-wrap">
     <section class="col-6">
+      {{ selectedPositionIdIndex }}
       <h2>Game Board</h2>
       <ul
         class="wheel"
@@ -30,7 +31,7 @@
       </h3>
     </section>
 
-    <section class="col-6">
+    <section class="col">
       <div>
         <h2>Recorded Spins</h2>
         <table>
@@ -97,13 +98,21 @@ export default class GameBoardAndEvents extends Vue {
     return this.$store.state.config.colors
   }
 
+  get Results () {
+    return this.$store.state.config.results
+  }
+
   mounted () {
-    this.$store.watch(
-      state => state.config.slots,
-      (value) => {
-        getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
-      }
-    )
+    if (this.PositionToId) {
+      getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
+    } else {
+      this.$store.watch(
+        state => state.config.PositionToId,
+        () => {
+          getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
+        }
+      )
+    }
   }
 
   getSpinUntilAvailable (seconds) {
@@ -112,7 +121,7 @@ export default class GameBoardAndEvents extends Vue {
         .then((response) => {
           const data = response.data
           if (data.result || data.result === 0) {
-            this.selectedPositionIdIndex = this.config.results.findIndex((result) => result === data.result)
+            this.selectedPositionIdIndex = this.Results.findIndex((result) => +result === data.result)
             this.$store.dispatch('addRecordedSpin', data)
             this.handleInitNewGame()
           } else {
