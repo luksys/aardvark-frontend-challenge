@@ -1,7 +1,10 @@
 import axios from 'axios'
+import axiosRetry from 'axios-retry'
 import { NEXT_GAME_PATH, SPIN_BY_UUID_PATH, SPIN_STATS, WHEEL_CONFIG_PATH } from '@/constants'
 import store from '@/store'
 import { createActionLogEntry } from '@/utilities'
+
+axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay })
 
 export const getWheelConfig = (apiUrl: string) => {
   store.dispatch('addActionsLogItem', createActionLogEntry('GET ../configuration')).then()

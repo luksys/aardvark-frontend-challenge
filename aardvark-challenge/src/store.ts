@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 import ActionsLogModel from '@/models/ActionsLogModel'
 import ConfigModel from '@/models/ConfigModel'
+import NotificationBarMessage from '@/models/NotificationBarMessage'
 
 Vue.use(Vuex)
 
@@ -10,7 +11,8 @@ export default new Vuex.Store({
   state: {
     recordedSpins: Array<RecordedSpinsModel>(),
     actionsLog: Array<ActionsLogModel>(),
-    config: {} as ConfigModel
+    config: {} as ConfigModel,
+    notificationBarMessage: {} as NotificationBarMessage
   },
   mutations: {
     addRecordedSpin (state, recordedSpinsModel: RecordedSpinsModel) {

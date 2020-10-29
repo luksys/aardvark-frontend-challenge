@@ -76,9 +76,7 @@ import ActionsLogModel from '@/models/ActionsLogModel'
 import { getSpinStats } from '@/services'
 import { createActionLogEntry } from '@/utilities'
 
-@Component({
-
-})
+@Component
 export default class StatisticsAndActionsLog extends Vue {
   @Prop() apiUrl!: string;
   private stats = [];
@@ -101,9 +99,11 @@ export default class StatisticsAndActionsLog extends Vue {
   }
 
   setSpinStats () {
-    getSpinStats(this.apiUrl, 200).then(response => {
-      this.stats = [...response.data]
-    })
+    getSpinStats(this.apiUrl, 200)
+      .then(response => {
+        this.stats = [...response.data]
+      })
+      .catch(error => console.log({ error }))
   }
 
   getOccurrenceIndicator (index, stats): string {

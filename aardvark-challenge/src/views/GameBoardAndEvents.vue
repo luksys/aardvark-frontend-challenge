@@ -72,7 +72,6 @@ import { createActionLogEntry } from '@/utilities'
 })
 export default class GameBoardAndEvents extends Vue {
   @Prop() apiUrl!: string
-  private config: ConfigModel = {};
   private gameData = {};
 
   private countDownIntervalId;
@@ -109,7 +108,9 @@ export default class GameBoardAndEvents extends Vue {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('GameBoardAndEvents mounted')).then()
     if (this.PositionToId && this.PositionToId.length) {
       this.initializedTheGameBoard = true
-      getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
+      getNextGame(this.apiUrl)
+        .then((response) => this.handleNextGameFetchResult(response.data))
+        .catch(error => console.log({ error }))
     }
   }
 
@@ -122,7 +123,9 @@ export default class GameBoardAndEvents extends Vue {
   updated () {
     if (this.PositionToId.length && !this.initializedTheGameBoard) {
       this.initializedTheGameBoard = true
-      getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
+      getNextGame(this.apiUrl)
+        .then((response) => this.handleNextGameFetchResult(response.data))
+        .catch(error => console.log({ error }))
     }
   }
 
@@ -201,6 +204,7 @@ export default class GameBoardAndEvents extends Vue {
     this.endSpinWheel()
     getNextGame(this.apiUrl)
       .then((response) => this.handleNextGameFetchResult(response.data))
+      .catch(error => console.log({ error }))
   }
 }
 </script>

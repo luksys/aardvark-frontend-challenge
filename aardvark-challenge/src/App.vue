@@ -23,9 +23,7 @@ import { DEFAULT_API_URL } from '@/constants'
 import { getWheelConfig } from '@/services'
 import { createActionLogEntry } from '@/utilities'
 
-@Component({
-
-})
+@Component
 export default class App extends Vue {
   private apiUrl = DEFAULT_API_URL;
 
@@ -34,6 +32,8 @@ export default class App extends Vue {
     getWheelConfig(this.apiUrl).then(response => {
       const data = response.data
       this.$store.dispatch('addConfig', data)
+    }).catch(error => {
+      console.log({ error })
     })
   }
 }
