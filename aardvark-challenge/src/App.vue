@@ -499,6 +499,9 @@ table {
     padding: 16px;
     text-align: left;
   }
+  tr {
+    &:nth-child(even) {background-color: #00a5a84d}
+  }
 }
 
 /* Mini grid */
