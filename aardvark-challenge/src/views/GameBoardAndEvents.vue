@@ -1,7 +1,6 @@
 <template>
   <div class="d-flex flex-wrap">
     <section class="col-6">
-      {{ selectedPositionIdIndex }}
       <h2>Game Board</h2>
       <ul
         class="wheel"
@@ -64,6 +63,7 @@ import { Component, Prop, Vue } from 'vue-property-decorator'
 import { getNextGame, getSpin } from '@/services'
 import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 import ConfigModel from '@/models/ConfigModel'
+import { createActionLogEntry } from '@/utilities'
 
 @Component({
 
@@ -103,6 +103,7 @@ export default class GameBoardAndEvents extends Vue {
   }
 
   mounted () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('GameBoardAndEvents mounted')).then()
     if (this.PositionToId) {
       getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
     } else {
@@ -116,6 +117,7 @@ export default class GameBoardAndEvents extends Vue {
   }
 
   getSpinUntilAvailable (seconds) {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Getting spin until result is available')).then()
     setTimeout(() => {
       getSpin(this.apiUrl, this.gameData.uuid)
         .then((response) => {
@@ -150,12 +152,14 @@ export default class GameBoardAndEvents extends Vue {
   }
 
   startSpinWheel () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Spinning the wheel')).then()
     this.wheelSpinIntervalId = setInterval(() => {
       this.wheelRotationAngle++
     }, 50)
   }
 
   endSpinWheel () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Stopped spinning the wheel')).then()
     clearInterval(this.wheelSpinIntervalId)
   }
 

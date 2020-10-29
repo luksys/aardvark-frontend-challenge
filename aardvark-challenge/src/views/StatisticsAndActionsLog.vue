@@ -68,6 +68,7 @@
 import { Component, Prop, Vue } from 'vue-property-decorator'
 import ActionsLogModel from '@/models/ActionsLogModel'
 import { getSpinStats } from '@/services'
+import { createActionLogEntry } from '@/utilities'
 
 @Component({
 
@@ -89,6 +90,7 @@ export default class StatisticsAndActionsLog extends Vue {
   }
 
   mounted () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('StatisticsAndActionsLog mounted')).then()
     this.setSpinStats()
   }
 
