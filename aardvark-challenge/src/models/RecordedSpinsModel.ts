@@ -9,7 +9,7 @@ export default class RecordedSpinsModel {
   result: number;
   outcome: string;
 
-  constructor() {
+  constructor () {
     this.uuid = '';
     this.id = 0;
     this.startTime = '';

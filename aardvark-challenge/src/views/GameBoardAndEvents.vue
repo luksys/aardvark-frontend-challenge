@@ -1,36 +1,48 @@
 <template>
-  <div>
-    <h2>Game Board</h2>
-    <ul
-      class="wheel"
-      :style="{transform: `rotateZ(${wheelRotationAngle}deg)`}"
-    >
-      <li
-        v-for="(position, index) in positionToId"
-        :key="index"
-        class="wheel-item"
-        v-bind:class="{'is-selected': selectedPositionIdIndex > -1 && index === selectedPositionIdIndex}"
-        :style="{transform: `rotateZ(${!slots ? 0 : 360 / slots * index}deg)`}"
+  <div class="d-flex flex-wrap">
+    <section class="col-6">
+      <h2>Game Board</h2>
+      <ul
+        class="wheel"
+        :style="{transform: `rotateZ(${wheelRotationAngle}deg)`}"
       >
-        <span class='wheel-number'>{{ position }}</span>
-      </li>
-    </ul>
-    <div class="timer">
+        <li
+          v-for="(position, index) in PositionToId"
+          class="wheel-item"
+          :class="{
+            'is-selected': selectedPositionIdIndex > -1 && index === selectedPositionIdIndex,
+            'border-top-color-red': Colors[index] === 'red',
+            'border-top-color-black': Colors[index] === 'black',
+            'border-top-color-green': Colors[index] === 'green'
+          }"
+          :key="index"
+          :style="{transform: 'rotateZ(' + 360 / Slots * index + 'deg)'}"
+        >
+          <span class='wheel-number'>{{ position }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="col-6">
       <h2>Countdown until the next game</h2>
-      {{ countDownValue ? countDownValue : 'Awaiting for result...' }}
-    </div>
-    <div>
-      <h2>Recorded Spins</h2>
-      <table>
-        <thead>
+      <h3 class="timer">
+        {{ countDownValue ? countDownValue : 'Awaiting for result...' }}
+      </h3>
+    </section>
+
+    <section class="col-6">
+      <div>
+        <h2>Recorded Spins</h2>
+        <table>
+          <thead>
           <tr>
-            <th>id</th>
-            <th>uuid</th>
-            <th>result</th>
-            <th>startTime</th>
+            <th>ID</th>
+            <th>UUID</th>
+            <th>Result</th>
+            <th>Start time</th>
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           <tr
             v-for="(spin, index) in RecordedSpins"
             :key="index">
@@ -39,9 +51,10 @@
             <td>{{ spin.result }}</td>
             <td>{{ spin.startTime }}</td>
           </tr>
-        </tbody>
-      </table>
-    </div>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -49,16 +62,14 @@
 import { Component, Prop, Vue } from 'vue-property-decorator'
 import { getNextGame, getSpin } from '@/services'
 import RecordedSpinsModel from '@/models/RecordedSpinsModel'
+import ConfigModel from '@/models/ConfigModel'
 
 @Component({
 
 })
 export default class GameBoardAndEvents extends Vue {
   @Prop() apiUrl!: string
-  @Prop() colors: [];
-  @Prop() positionToId: [];
-  @Prop() slots: number;
-  @Prop() results: number;
+  private config: ConfigModel = {};
   private gameData = {};
 
   private countDownIntervalId;
@@ -69,21 +80,30 @@ export default class GameBoardAndEvents extends Vue {
 
   private spinResultAvailableIntervalId;
   private selectedPositionIdIndex = -1;
-  private initialNextGameFetchDone = false;
 
   get RecordedSpins (): RecordedSpinsModel[] {
     return this.$store.state.recordedSpins
   }
 
-  updated () {
-    if (this.positionToId.length) {
-      if (!this.initialNextGameFetchDone) {
-        getNextGame(this.apiUrl)
-          .then((response) => this.handleNextGameFetchResult(response.data))
+  get PositionToId () {
+    return this.$store.state.config.positionToId
+  }
 
-        this.initialNextGameFetchDone = true
+  get Slots () {
+    return this.$store.state.config.slots
+  }
+
+  get Colors () {
+    return this.$store.state.config.colors
+  }
+
+  mounted () {
+    this.$store.watch(
+      state => state.config.slots,
+      (value) => {
+        getNextGame(this.apiUrl).then((response) => this.handleNextGameFetchResult(response.data))
       }
-    }
+    )
   }
 
   getSpinUntilAvailable (seconds) {
@@ -92,7 +112,7 @@ export default class GameBoardAndEvents extends Vue {
         .then((response) => {
           const data = response.data
           if (data.result || data.result === 0) {
-            this.selectedPositionIdIndex = this.results.findIndex((result) => result === data.result)
+            this.selectedPositionIdIndex = this.config.results.findIndex((result) => result === data.result)
             this.$store.dispatch('addRecordedSpin', data)
             this.handleInitNewGame()
           } else {
@@ -145,7 +165,7 @@ export default class GameBoardAndEvents extends Vue {
 
         if (waitSeconds === 0) {
           clearInterval(this.spinResultAvailableIntervalId)
-          this.getSpinUntilAvailable(5000)
+          this.getSpinUntilAvailable(2000)
         }
       }, 1000)
     }
@@ -154,7 +174,7 @@ export default class GameBoardAndEvents extends Vue {
   handleInitNewGame () {
     setTimeout(() => {
       this.selectedPositionIdIndex = -1
-    }, 2000)
+    }, 2500)
     this.endSpinWheel()
     getNextGame(this.apiUrl)
       .then((response) => this.handleNextGameFetchResult(response.data))
@@ -162,13 +182,14 @@ export default class GameBoardAndEvents extends Vue {
 }
 </script>
 
-<style>
+<style lang="scss">
   .wheel {
     display: block;
     height: 350px;
     width: 350px;
     position: relative;
     padding: 0;
+    margin: 0 auto;
     list-style-type: none;
   }
   .wheel-item {
@@ -191,9 +212,10 @@ export default class GameBoardAndEvents extends Vue {
     border-top: 175px solid black;
     box-sizing: border-box;
   }
-  .wheel-item.is-selected .wheel-number {
-    color: red;
-    font-weight: bold;
+  .wheel-item {
+    &.is-selected {
+      animation: pulse 0.5s 4;
+    }
   }
   .wheel-number {
     color: #fff;
@@ -206,8 +228,5 @@ export default class GameBoardAndEvents extends Vue {
     position: absolute;
     top: -175px;
     left: -16px;
-  }
-  .timer {
-    font-size: 32px;
   }
 </style>
