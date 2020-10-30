@@ -71,7 +71,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import ActionsLogModel from '@/models/ActionsLogModel'
 import { getSpinStats } from '@/services'
 import { createActionLogEntry } from '@/utilities'
@@ -81,6 +81,13 @@ import StatsModel from '@/models/StatsModel'
 export default class StatisticsAndActionsLog extends Vue {
   @Prop() apiUrl!: string;
   private stats: Array<StatsModel> = [];
+
+  @Watch('apiUrl')
+  watchAPIUrl (next) {
+    if (next.trim() !== '') {
+      this.init()
+    }
+  }
 
   get Colors () {
     return this.$store.state.config.colors
@@ -95,6 +102,10 @@ export default class StatisticsAndActionsLog extends Vue {
   }
 
   mounted () {
+    this.init()
+  }
+
+  init () {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('StatisticsAndActionsLog mounted')).then()
     this.setSpinStats()
   }

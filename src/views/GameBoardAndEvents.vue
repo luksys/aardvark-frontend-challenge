@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { getNextGame, getSpin } from '@/services'
 import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 import { createActionLogEntry } from '@/utilities'
@@ -91,6 +91,13 @@ export default class GameBoardAndEvents extends Vue {
   private selectedPositionIdIndex = -1;
   private initializedTheGameBoard = false;
 
+  @Watch('apiUrl')
+  watchAPIUrl (next) {
+    if (next.trim() !== '') {
+      this.init()
+    }
+  }
+
   get RecordedSpins (): RecordedSpinsModel[] {
     return this.$store.state.recordedSpins
   }
@@ -112,6 +119,12 @@ export default class GameBoardAndEvents extends Vue {
   }
 
   mounted () {
+    this.init()
+  }
+
+  init () {
+    this.resetIntervals()
+
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('GameBoardAndEvents mounted')).then()
     if (this.PositionToId && this.PositionToId.length) {
       this.initializedTheGameBoard = true
@@ -122,9 +135,7 @@ export default class GameBoardAndEvents extends Vue {
   }
 
   beforeDestroy () {
-    clearInterval(this.countDownIntervalId)
-    clearInterval(this.wheelSpinIntervalId)
-    clearInterval(this.spinResultAvailableIntervalId)
+    this.resetIntervals()
   }
 
   updated () {
@@ -212,6 +223,12 @@ export default class GameBoardAndEvents extends Vue {
     getNextGame(this.apiUrl)
       .then((response) => this.handleNextGameFetchResult(response.data))
       .catch(error => console.log({ error }))
+  }
+
+  resetIntervals () {
+    clearInterval(this.countDownIntervalId)
+    clearInterval(this.wheelSpinIntervalId)
+    clearInterval(this.spinResultAvailableIntervalId)
   }
 }
 </script>

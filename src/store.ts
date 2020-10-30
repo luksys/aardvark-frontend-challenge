@@ -10,7 +10,7 @@ export default new Vuex.Store({
   state: {
     recordedSpins: Array<RecordedSpinsModel>(),
     actionsLog: Array<ActionsLogModel>(),
-    config: {} as ConfigModel,
+    config: {} as ConfigModel
   },
   mutations: {
     addRecordedSpin (state, recordedSpinsModel: RecordedSpinsModel) {

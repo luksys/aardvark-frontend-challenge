@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Watch } from 'vue-property-decorator'
 import { DEFAULT_API_URL } from '@/constants'
 import { getWheelConfig } from '@/services'
 import { createActionLogEntry } from '@/utilities'
@@ -27,7 +27,18 @@ import { createActionLogEntry } from '@/utilities'
 export default class App extends Vue {
   private apiUrl = DEFAULT_API_URL;
 
+  @Watch('apiUrl')
+  watchAPIUrl (next) {
+    if (next.trim() !== '') {
+      this.init()
+    }
+  }
+
   mounted () {
+    this.init()
+  }
+
+  init () {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('App mounted')).then()
     getWheelConfig(this.apiUrl).then(response => {
       const data = response.data
