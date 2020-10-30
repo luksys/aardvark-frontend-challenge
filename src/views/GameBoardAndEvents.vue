@@ -64,23 +64,30 @@
 import { Component, Prop, Vue } from 'vue-property-decorator'
 import { getNextGame, getSpin } from '@/services'
 import RecordedSpinsModel from '@/models/RecordedSpinsModel'
-import ConfigModel from '@/models/ConfigModel'
 import { createActionLogEntry } from '@/utilities'
 
-@Component({
-
-})
+@Component
 export default class GameBoardAndEvents extends Vue {
   @Prop() apiUrl!: string
-  private gameData = {};
+  private gameData: RecordedSpinsModel = {
+    uuid: '',
+    id: 0,
+    startTime: '',
+    startDelta: 0,
+    startDeltaUs: 0,
+    fakeStartDelta: 0,
+    duration: 0,
+    result: 0,
+    outcome: ''
+  };
 
-  private countDownIntervalId;
+  private countDownIntervalId = -1;
   private countDownValue = 0;
 
-  private wheelSpinIntervalId;
+  private wheelSpinIntervalId = -1;
   private wheelRotationAngle = 0;
 
-  private spinResultAvailableIntervalId;
+  private spinResultAvailableIntervalId = -1;
   private selectedPositionIdIndex = -1;
   private initializedTheGameBoard = false;
 
@@ -129,14 +136,14 @@ export default class GameBoardAndEvents extends Vue {
     }
   }
 
-  getSpinUntilAvailable (seconds) {
+  getSpinUntilAvailable (seconds: number) {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('Getting spin until result is available')).then()
     setTimeout(() => {
       getSpin(this.apiUrl, this.gameData.uuid)
         .then((response) => {
           const data = response.data
           if (data.result || data.result === 0) {
-            this.selectedPositionIdIndex = this.Results.findIndex((result) => +result === data.result)
+            this.selectedPositionIdIndex = this.Results.findIndex((result: string) => +result === data.result)
             this.$store.dispatch('addRecordedSpin', data)
             this.handleInitNewGame()
           } else {
@@ -147,11 +154,11 @@ export default class GameBoardAndEvents extends Vue {
     }, seconds)
   }
 
-  initCountdown (data) {
+  initCountdown (data: RecordedSpinsModel) {
     this.countDown(data.fakeStartDelta, this.handleCountdownFinish)
   }
 
-  countDown (seconds, endCallback) {
+  countDown (seconds: number, endCallback: any) {
     this.countDownValue = seconds
 
     this.countDownIntervalId = setInterval(() => {
@@ -176,7 +183,7 @@ export default class GameBoardAndEvents extends Vue {
     clearInterval(this.wheelSpinIntervalId)
   }
 
-  handleNextGameFetchResult (data) {
+  handleNextGameFetchResult (data: RecordedSpinsModel) {
     this.gameData = data
     this.initCountdown(this.gameData)
   }

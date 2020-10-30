@@ -4,7 +4,12 @@ import { NEXT_GAME_PATH, SPIN_BY_UUID_PATH, SPIN_STATS, WHEEL_CONFIG_PATH } from
 import store from '@/store'
 import { createActionLogEntry } from '@/utilities'
 
-axiosRetry(axios, { retryDelay: axiosRetry.exponentialDelay })
+axiosRetry(axios, {
+  retryDelay: (retryCount) => {
+    return retryCount * 1000
+  },
+  retries: 5
+})
 
 export const getWheelConfig = (apiUrl: string) => {
   store.dispatch('addActionsLogItem', createActionLogEntry('GET ../configuration')).then()

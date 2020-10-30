@@ -75,11 +75,12 @@ import { Component, Prop, Vue } from 'vue-property-decorator'
 import ActionsLogModel from '@/models/ActionsLogModel'
 import { getSpinStats } from '@/services'
 import { createActionLogEntry } from '@/utilities'
+import StatsModel from '@/models/StatsModel'
 
 @Component
 export default class StatisticsAndActionsLog extends Vue {
   @Prop() apiUrl!: string;
-  private stats = [];
+  private stats: Array<StatsModel> = [];
 
   get Colors () {
     return this.$store.state.config.colors
@@ -106,7 +107,7 @@ export default class StatisticsAndActionsLog extends Vue {
       .catch(error => console.log({ error }))
   }
 
-  getOccurrenceIndicator (index, stats): string {
+  getOccurrenceIndicator (index: number, stats: Array<StatsModel>): string | undefined {
     if (!stats) return
 
     if (index < 5) { return 'Cold!' }
@@ -114,7 +115,7 @@ export default class StatisticsAndActionsLog extends Vue {
     return 'Neutral'
   }
 
-  getOccurrenceIndicatorColorClass (index, stats): string {
+  getOccurrenceIndicatorColorClass (index: number, stats: Array<StatsModel>): string | undefined {
     if (!stats) return
 
     if (index < 5) { return 'background-color-blue' }
