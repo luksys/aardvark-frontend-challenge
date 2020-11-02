@@ -83,7 +83,7 @@ export default class StatisticsAndActionsLog extends Vue {
   private stats: Array<StatsModel> = [];
 
   @Watch('apiUrl')
-  watchAPIUrl (next) {
+  watchAPIUrl (next: string) {
     if (next.trim() !== '') {
       this.init()
     }

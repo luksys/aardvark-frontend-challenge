@@ -28,7 +28,7 @@ export default class App extends Vue {
   private apiUrl = DEFAULT_API_URL;
 
   @Watch('apiUrl')
-  watchAPIUrl (next) {
+  watchAPIUrl (next: string) {
     if (next.trim() !== '') {
       this.init()
     }
