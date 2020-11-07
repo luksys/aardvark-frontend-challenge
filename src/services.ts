@@ -5,10 +5,8 @@ import store from '@/store'
 import { createActionLogEntry } from '@/utilities'
 
 axiosRetry(axios, {
-  retryDelay: (retryCount) => {
-    return retryCount * 1000
-  },
-  retries: 5
+  retryDelay: () => 2000,
+  retries: Infinity
 })
 
 export const getWheelConfig = (apiUrl: string) => {
