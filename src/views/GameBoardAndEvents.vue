@@ -10,7 +10,7 @@
           v-for="(position, index) in PositionToId"
           class="wheel-item"
           :class="{
-            'is-selected': selectedPositionIdIndex > -1 && index === selectedPositionIdIndex,
+            'is-selected': position === spinResult,
             'border-top-color-red': Colors[index] === 'red',
             'border-top-color-black': Colors[index] === 'black',
             'border-top-color-green': Colors[index] === 'green'
@@ -88,7 +88,7 @@ export default class GameBoardAndEvents extends Vue {
   private wheelRotationAngle = 0;
 
   private spinResultAvailableIntervalId = -1;
-  private selectedPositionIdIndex = -1;
+  private spinResult = -1;
   private initializedTheGameBoard = false;
 
   @Watch('apiUrl')
@@ -154,7 +154,7 @@ export default class GameBoardAndEvents extends Vue {
         .then((response) => {
           const data = response.data
           if (data.result || data.result === 0) {
-            this.selectedPositionIdIndex = this.Results.findIndex((result: string) => +result === data.result)
+            this.spinResult = data.result
             this.$store.dispatch('addRecordedSpin', data)
             this.handleInitNewGame()
           } else {
@@ -217,7 +217,7 @@ export default class GameBoardAndEvents extends Vue {
 
   handleInitNewGame () {
     setTimeout(() => {
-      this.selectedPositionIdIndex = -1
+      this.spinResult = -1
     }, 2500)
     this.endSpinWheel()
     getNextGame(this.apiUrl)
