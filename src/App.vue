@@ -29,7 +29,6 @@ export default class App extends Vue {
   private apiUrl = DEFAULT_API_URL;
 
   private countDownIntervalId = -1;
-  private countDownValue = 0;
 
   private spinResultAvailableIntervalId = -1;
   private spinResult = -1;
