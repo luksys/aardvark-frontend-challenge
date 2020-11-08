@@ -89,6 +89,13 @@ export default class StatisticsAndActionsLog extends Vue {
     }
   }
 
+  @Watch('CurrentSpinResult')
+  watchCurrentSpinResult (next: number | null) {
+    if (next === null) return
+
+    this.setSpinStats()
+  }
+
   get Colors () {
     return this.$store.state.config.colors
   }
@@ -101,6 +108,10 @@ export default class StatisticsAndActionsLog extends Vue {
     return this.$store.state.actionsLog
   }
 
+  get CurrentSpinResult () {
+    return this.$store.state.currentSpin.result
+  }
+
   mounted () {
     this.init()
   }
@@ -111,6 +122,7 @@ export default class StatisticsAndActionsLog extends Vue {
   }
 
   setSpinStats () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Setting spins statistics')).then()
     getSpinStats(this.apiUrl, 200)
       .then(response => {
         this.stats = [...response.data]

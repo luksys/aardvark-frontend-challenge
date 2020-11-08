@@ -20,18 +20,33 @@
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator'
 import { DEFAULT_API_URL } from '@/constants'
-import { getWheelConfig } from '@/services'
+import { getNextGame, getSpin, getWheelConfig } from '@/services'
 import { createActionLogEntry } from '@/utilities'
+import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 
 @Component
 export default class App extends Vue {
   private apiUrl = DEFAULT_API_URL;
+
+  private countDownIntervalId = -1;
+  private countDownValue = 0;
+
+  private spinResultAvailableIntervalId = -1;
+  private spinResult = -1;
 
   @Watch('apiUrl')
   watchAPIUrl (next: string) {
     if (next.trim() !== '') {
       this.init()
     }
+  }
+
+  get CountdownValue () {
+    return this.$store.state.countdownTimer.value
+  }
+
+  get CurrentSpin () {
+    return this.$store.state.currentSpin
   }
 
   mounted () {
@@ -43,9 +58,94 @@ export default class App extends Vue {
     getWheelConfig(this.apiUrl).then(response => {
       const data = response.data
       this.$store.dispatch('addConfig', data)
+
+      getNextGame(this.apiUrl)
+        .then((response) => this.handleNextGameFetchResult(response.data))
+        .catch(error => console.log({ error }))
     }).catch(error => {
       console.log({ error })
     })
+
+    // setInterval(() => {
+    //   const nextValue = this.Timer.value !== null ? ++this.Timer.value : 0
+    //   this.$store.dispatch('updateCountdownTimerValue', nextValue)
+    // }, 1000)
+  }
+
+  handleNextGameFetchResult (data: RecordedSpinsModel) {
+    this.$store.dispatch('updateCurrentSpin', data)
+    this.initCountdown(this.CurrentSpin)
+  }
+
+  initCountdown (data: RecordedSpinsModel) {
+    this.countDown(data.fakeStartDelta, this.handleCountdownFinish)
+  }
+
+  countDown (seconds: number, endCallback) {
+    this.$store.dispatch('updateCountdownTimerValue', seconds)
+
+    this.countDownIntervalId = setInterval(() => {
+      this.$store.dispatch('updateCountdownTimerValue', this.CountdownValue - 1)
+      if (this.CountdownValue === 0) {
+        clearInterval(this.countDownIntervalId)
+        if (endCallback) endCallback()
+      }
+    }, 1000)
+  }
+
+  handleCountdownFinish () {
+    this.startSpinWheel()
+    let waitSeconds = this.CurrentSpin.startDelta - this.CurrentSpin.fakeStartDelta
+
+    if (waitSeconds > 0) {
+      this.spinResultAvailableIntervalId = setInterval(() => {
+        waitSeconds--
+
+        if (waitSeconds <= 0) {
+          clearInterval(this.spinResultAvailableIntervalId)
+          this.getSpinUntilAvailable(2000)
+        }
+      }, 1000)
+    }
+  }
+
+  getSpinUntilAvailable (seconds: number) {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Getting spin until result is available')).then()
+    setTimeout(() => {
+      getSpin(this.apiUrl, this.CurrentSpin.uuid)
+        .then((response) => {
+          const data = response.data
+          if (data.result || data.result === 0) {
+            this.spinResult = data.result
+            this.$store.dispatch('addRecordedSpin', data)
+            this.$store.dispatch('updateCurrentSpin', data)
+            this.handleInitNewGame()
+          } else {
+            this.getSpinUntilAvailable(seconds)
+          }
+        })
+        .catch((error) => console.log(error))
+    }, seconds)
+  }
+
+  handleInitNewGame () {
+    setTimeout(() => {
+      this.spinResult = -1
+    }, 2500)
+    this.endSpinWheel()
+    getNextGame(this.apiUrl)
+      .then((response) => this.handleNextGameFetchResult(response.data))
+      .catch(error => console.log({ error }))
+  }
+
+  startSpinWheel () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Spinning the wheel')).then()
+    this.$store.dispatch('updateWheelIsSpinningFlag', true)
+  }
+
+  endSpinWheel () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Stopped spinning the wheel')).then()
+    this.$store.dispatch('updateWheelIsSpinningFlag', false)
   }
 }
 </script>

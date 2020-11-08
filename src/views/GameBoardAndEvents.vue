@@ -10,7 +10,7 @@
           v-for="(position, index) in PositionToId"
           class="wheel-item"
           :class="{
-            'is-selected': position === spinResult,
+            'is-selected': position === currentSpinResult,
             'border-top-color-red': Colors[index] === 'red',
             'border-top-color-black': Colors[index] === 'black',
             'border-top-color-green': Colors[index] === 'green'
@@ -25,8 +25,8 @@
 
     <section class="col-6">
       <h2>Countdown until the next game</h2>
-      <h3 v-if="!countDownValue">Awaiting for result...</h3>
-      <div v-else class="timer">{{ countDownValue }}</div>
+      <h3 v-if="!CountdownTimerValue">Awaiting for result...</h3>
+      <div v-else class="timer">{{ CountdownTimerValue }}</div>
     </section>
 
     <section class="col">
@@ -69,33 +69,39 @@ import { createActionLogEntry } from '@/utilities'
 @Component
 export default class GameBoardAndEvents extends Vue {
   @Prop() apiUrl!: string
-  private gameData: RecordedSpinsModel = {
-    uuid: '',
-    id: 0,
-    startTime: '',
-    startDelta: 0,
-    startDeltaUs: 0,
-    fakeStartDelta: 0,
-    duration: 0,
-    result: 0,
-    outcome: ''
-  };
 
-  private countDownIntervalId = -1;
-  private countDownValue = 0;
+  private wheelSpinIntervalId = -1
+  private wheelRotationAngle = 0
 
-  private wheelSpinIntervalId = -1;
-  private wheelRotationAngle = 0;
-
-  private spinResultAvailableIntervalId = -1;
-  private spinResult = -1;
-  private initializedTheGameBoard = false;
+  private currentSpinResult = -1
+  private currentSpinResultIntervalId = -1
 
   @Watch('apiUrl')
   watchAPIUrl (next: string) {
     if (next.trim() !== '') {
-      this.init()
+      // this.init()
     }
+  }
+
+  @Watch('WheelIsSpinning')
+  watchWheelIsSpinning (next: boolean) {
+    if (next) {
+      this.wheelSpinIntervalId = setInterval(() => this.wheelRotationAngle++, 50)
+    } else {
+      clearInterval(this.wheelSpinIntervalId)
+    }
+  }
+
+  @Watch('CurrentSpinResult')
+  watchCurrentSpinResult (next: number | null) {
+    if (next === null) return
+
+    this.currentSpinResult = next
+
+    this.currentSpinResultIntervalId = setInterval(() => {
+      this.currentSpinResult = -1
+      clearInterval(this.currentSpinResultIntervalId)
+    }, 2500)
   }
 
   get RecordedSpins (): RecordedSpinsModel[] {
@@ -118,118 +124,27 @@ export default class GameBoardAndEvents extends Vue {
     return this.$store.state.config.results
   }
 
+  get WheelIsSpinning () {
+    return this.$store.state.wheel.isSpinning
+  }
+
+  get CountdownTimerValue () {
+    return this.$store.state.countdownTimer.value
+  }
+
+  get CurrentSpinResult () {
+    return this.$store.state.currentSpin.result
+  }
+
   mounted () {
-    this.init()
-  }
-
-  init () {
-    this.resetIntervals()
-
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('GameBoardAndEvents mounted')).then()
-    if (this.PositionToId && this.PositionToId.length) {
-      this.initializedTheGameBoard = true
-      getNextGame(this.apiUrl)
-        .then((response) => this.handleNextGameFetchResult(response.data))
-        .catch(error => console.log({ error }))
-    }
   }
 
-  beforeDestroy () {
-    this.resetIntervals()
-  }
-
-  updated () {
-    if (this.PositionToId.length && !this.initializedTheGameBoard) {
-      this.initializedTheGameBoard = true
-      getNextGame(this.apiUrl)
-        .then((response) => this.handleNextGameFetchResult(response.data))
-        .catch(error => console.log({ error }))
-    }
-  }
-
-  getSpinUntilAvailable (seconds: number) {
-    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Getting spin until result is available')).then()
-    setTimeout(() => {
-      getSpin(this.apiUrl, this.gameData.uuid)
-        .then((response) => {
-          const data = response.data
-          if (data.result || data.result === 0) {
-            this.spinResult = data.result
-            this.$store.dispatch('addRecordedSpin', data)
-            this.handleInitNewGame()
-          } else {
-            this.getSpinUntilAvailable(seconds)
-          }
-        })
-        .catch((error) => console.log(error))
-    }, seconds)
-  }
-
-  initCountdown (data: RecordedSpinsModel) {
-    this.countDown(data.fakeStartDelta, this.handleCountdownFinish)
-  }
-
-  countDown (seconds: number, endCallback: any) {
-    this.countDownValue = seconds
-
-    this.countDownIntervalId = setInterval(() => {
-      this.countDownValue--
-
-      if (this.countDownValue === 0) {
-        clearInterval(this.countDownIntervalId)
-        if (endCallback) endCallback()
-      }
-    }, 1000)
-  }
-
-  startSpinWheel () {
-    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Spinning the wheel')).then()
-    this.wheelSpinIntervalId = setInterval(() => {
-      this.wheelRotationAngle++
-    }, 50)
-  }
-
-  endSpinWheel () {
-    this.$store.dispatch('addActionsLogItem', createActionLogEntry('Stopped spinning the wheel')).then()
-    clearInterval(this.wheelSpinIntervalId)
-  }
-
-  handleNextGameFetchResult (data: RecordedSpinsModel) {
-    this.gameData = data
-    this.initCountdown(this.gameData)
-  }
-
-  handleCountdownFinish () {
-    this.startSpinWheel()
-    let waitSeconds = this.gameData.startDelta - this.gameData.fakeStartDelta
-
-    if (waitSeconds > 0) {
-      this.spinResultAvailableIntervalId = setInterval(() => {
-        waitSeconds--
-
-        if (waitSeconds === 0) {
-          clearInterval(this.spinResultAvailableIntervalId)
-          this.getSpinUntilAvailable(2000)
-        }
-      }, 1000)
-    }
-  }
-
-  handleInitNewGame () {
-    setTimeout(() => {
-      this.spinResult = -1
-    }, 2500)
-    this.endSpinWheel()
-    getNextGame(this.apiUrl)
-      .then((response) => this.handleNextGameFetchResult(response.data))
-      .catch(error => console.log({ error }))
-  }
-
-  resetIntervals () {
-    clearInterval(this.countDownIntervalId)
-    clearInterval(this.wheelSpinIntervalId)
-    clearInterval(this.spinResultAvailableIntervalId)
-  }
+  // resetIntervals () {
+  //   clearInterval(this.countDownIntervalId)
+  //   clearInterval(this.wheelSpinIntervalId)
+  //   clearInterval(this.spinResultAvailableIntervalId)
+  // }
 }
 </script>
 
