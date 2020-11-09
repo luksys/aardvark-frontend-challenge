@@ -78,7 +78,7 @@ export default class GameBoardAndEvents extends Vue {
   @Watch('apiUrl')
   watchAPIUrl (next: string) {
     if (next.trim() !== '') {
-      // this.init()
+      this.resetIntervals()
     }
   }
 

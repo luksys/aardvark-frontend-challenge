@@ -49,6 +49,7 @@ export default class App extends Vue {
   }
 
   mounted () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('App mounted')).then()
     this.init()
   }
 
@@ -58,7 +59,6 @@ export default class App extends Vue {
 
   init () {
     this.resetIntervals()
-    this.$store.dispatch('addActionsLogItem', createActionLogEntry('App mounted')).then()
     getWheelConfig(this.apiUrl).then(response => {
       const data = response.data
       this.$store.dispatch('addConfig', data)

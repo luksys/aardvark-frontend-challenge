@@ -113,11 +113,11 @@ export default class StatisticsAndActionsLog extends Vue {
   }
 
   mounted () {
+    this.$store.dispatch('addActionsLogItem', createActionLogEntry('StatisticsAndActionsLog mounted')).then()
     this.init()
   }
 
   init () {
-    this.$store.dispatch('addActionsLogItem', createActionLogEntry('StatisticsAndActionsLog mounted')).then()
     this.setSpinStats()
   }
 
