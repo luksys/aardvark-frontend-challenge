@@ -62,7 +62,6 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
-import { getNextGame, getSpin } from '@/services'
 import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 import { createActionLogEntry } from '@/utilities'
 
@@ -138,13 +137,16 @@ export default class GameBoardAndEvents extends Vue {
 
   mounted () {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('GameBoardAndEvents mounted')).then()
+    this.watchWheelIsSpinning(this.WheelIsSpinning)
   }
 
-  // resetIntervals () {
-  //   clearInterval(this.countDownIntervalId)
-  //   clearInterval(this.wheelSpinIntervalId)
-  //   clearInterval(this.spinResultAvailableIntervalId)
-  // }
+  beforeDestroy () {
+    this.resetIntervals()
+  }
+
+  resetIntervals () {
+    clearInterval(this.currentSpinResultIntervalId)
+  }
 }
 </script>
 

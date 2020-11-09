@@ -52,7 +52,12 @@ export default class App extends Vue {
     this.init()
   }
 
+  beforeDestroy () {
+    this.resetIntervals()
+  }
+
   init () {
+    this.resetIntervals()
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('App mounted')).then()
     getWheelConfig(this.apiUrl).then(response => {
       const data = response.data
@@ -64,11 +69,6 @@ export default class App extends Vue {
     }).catch(error => {
       console.log({ error })
     })
-
-    // setInterval(() => {
-    //   const nextValue = this.Timer.value !== null ? ++this.Timer.value : 0
-    //   this.$store.dispatch('updateCountdownTimerValue', nextValue)
-    // }, 1000)
   }
 
   handleNextGameFetchResult (data: RecordedSpinsModel) {
@@ -77,7 +77,11 @@ export default class App extends Vue {
   }
 
   initCountdown (data: RecordedSpinsModel) {
-    this.countDown(data.fakeStartDelta, this.handleCountdownFinish)
+    if (data.fakeStartDelta > 0) {
+      this.countDown(data.fakeStartDelta, this.handleCountdownFinish)
+    } else {
+      this.handleCountdownFinish()
+    }
   }
 
   countDown (seconds: number, endCallback) {
@@ -95,17 +99,21 @@ export default class App extends Vue {
   handleCountdownFinish () {
     this.startSpinWheel()
     let waitSeconds = this.CurrentSpin.startDelta - this.CurrentSpin.fakeStartDelta
+    if (this.CurrentSpin.fakeStartDelta < 0) waitSeconds = this.CurrentSpin.startDelta
 
-    if (waitSeconds > 0) {
-      this.spinResultAvailableIntervalId = setInterval(() => {
-        waitSeconds--
-
-        if (waitSeconds <= 0) {
-          clearInterval(this.spinResultAvailableIntervalId)
-          this.getSpinUntilAvailable(2000)
-        }
-      }, 1000)
+    if (waitSeconds < 1) {
+      this.getSpinUntilAvailable(2000)
+      return
     }
+
+    this.spinResultAvailableIntervalId = setInterval(() => {
+      waitSeconds--
+
+      if (waitSeconds <= 0) {
+        clearInterval(this.spinResultAvailableIntervalId)
+        this.getSpinUntilAvailable(2000)
+      }
+    }, 1000)
   }
 
   getSpinUntilAvailable (seconds: number) {
@@ -145,6 +153,11 @@ export default class App extends Vue {
   endSpinWheel () {
     this.$store.dispatch('addActionsLogItem', createActionLogEntry('Stopped spinning the wheel')).then()
     this.$store.dispatch('updateWheelIsSpinningFlag', false)
+  }
+
+  resetIntervals () {
+    clearInterval(this.countDownIntervalId)
+    clearInterval(this.spinResultAvailableIntervalId)
   }
 }
 </script>
