@@ -11,9 +11,9 @@
           class="wheel-item"
           :class="{
             'is-selected': position === currentSpinResult,
-            'border-top-color-red': Colors[index] === 'red',
-            'border-top-color-black': Colors[index] === 'black',
-            'border-top-color-green': Colors[index] === 'green'
+            'border-top-color-red': Colors[position] === 'red',
+            'border-top-color-black': Colors[position] === 'black',
+            'border-top-color-green': Colors[position] === 'green'
           }"
           :key="index"
           :style="{transform: 'rotateZ(' + 360 / Slots * index + 'deg)'}"

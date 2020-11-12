@@ -8,9 +8,10 @@
       </ul>
     </nav>
     <div class="api-input">
-      <form>
+      <form v-on:submit.prevent="onApiUrlSubmit">
         <label for="api-url">API url</label>
-        <input v-model="apiUrl" id="api-url" placeholder="Add API url">
+        <input v-model="inputValueApiUrl" id="api-url" placeholder="Add API url">
+        <button class="ml-2" type="submit">Update</button>
       </form>
     </div>
     <router-view :api-url="apiUrl" />
@@ -26,7 +27,8 @@ import RecordedSpinsModel from '@/models/RecordedSpinsModel'
 
 @Component
 export default class App extends Vue {
-  private apiUrl = DEFAULT_API_URL;
+  private inputValueApiUrl = DEFAULT_API_URL;
+  private apiUrl = this.inputValueApiUrl;
 
   private countDownIntervalId = -1;
 
@@ -158,6 +160,10 @@ export default class App extends Vue {
   resetIntervals () {
     clearInterval(this.countDownIntervalId)
     clearInterval(this.spinResultAvailableIntervalId)
+  }
+
+  onApiUrlSubmit () {
+    this.apiUrl = this.inputValueApiUrl
   }
 }
 </script>
@@ -635,6 +641,9 @@ table {
 
 .mr-1 {margin-right: 4px !important;}
 .mr-2 {margin-right: 8px !important;}
+
+.ml-1 {margin-left: 4px !important;}
+.ml-2 {margin-left: 8px !important;}
 
 .mb-1 {margin-bottom: 4px !important;}
 .mb-2 {margin-bottom: 8px !important;}
